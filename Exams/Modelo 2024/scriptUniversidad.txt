@@ -1,0 +1,266 @@
+drop table is_prerequisite;
+drop table takes;
+drop table teaches;
+drop table student;
+drop table instructor;
+drop table section;
+drop table course;
+drop table department;
+drop table classroom;
+
+create table classroom
+
+	(class_building		varchar(15),
+	 room_number		varchar(7),
+	 capacity			numeric(4,0),
+	 primary key (class_building, room_number)
+	);
+
+create table department
+	(dept_name			varchar(20), 
+	 dept_building		varchar(15), 
+	 budget		        numeric(12,2) check (budget > 0),
+	 primary key (dept_name)
+	);
+
+create table instructor
+	(instructor_ID		varchar(5), 
+	 instructor_name	varchar(20) not null, 
+	 dept_name			varchar(20) not null, 
+	 salary				numeric(8,2) check (salary>0),
+	 total_hours		numeric(5,2) check (total_hours>0),    
+	 primary key (instructor_ID),
+	 foreign key (dept_name) references department (dept_name)
+	);
+
+create table student
+	(student_ID		varchar(5), 
+	 student_name	varchar(20) not null, 
+	 dept_name		varchar(20) not null, 
+	 tot_cred		numeric(3,0) check (tot_cred >= 0),
+	 instructor_ID	varchar(5) not null,
+	 primary key (student_ID),
+	 foreign key (dept_name) references department(dept_name),
+	 foreign key (instructor_ID) references instructor (instructor_ID)	
+);
+
+create table course
+	(course_ID		varchar(8), 
+	 title			varchar(50), 
+	 dept_name		varchar(20) not null,
+	 credits		numeric(2,0) check (credits > 0),
+	 type			varchar(10) check (type IN ('Compulsory','Elective')),
+	 primary key (course_ID),							
+	 foreign key (dept_name) references department (dept_name)
+	);
+
+create table is_prerequisite
+	(course_ID		varchar(8), 
+	 prereq_ID		varchar(8),
+	 primary key (course_ID, prereq_ID),
+	 foreign key (course_ID) references course (course_ID),
+	 foreign key (prereq_ID) references course (course_ID)
+	);
+
+create table section
+	(course_ID		varchar(8), 
+     sec_ID			varchar(8),
+	 semester		varchar(6) check (semester in ('Fall', 'Winter', 'Spring', 'Summer')), 
+	 year			numeric(4,0) check (year > 2000 and year < 2100), 
+	 class_building	varchar(15) not null,
+	 room_number	varchar(7) not null,
+	 max_students 	numeric(2,0) check (max_students>0),
+	 primary key (course_ID, sec_ID, semester, year),
+	 foreign key (course_ID) references course (course_ID),
+	 foreign key (class_building, room_number) references classroom (class_building, room_number)
+	);
+
+create table teaches
+	(instructor_ID	varchar(5), 
+	 course_ID		varchar(8),
+	 sec_ID			varchar(8), 
+	 semester		varchar(6),
+	 year			numeric(4,0),
+	 num_hours		numeric (5,2) check (num_hours>0),		
+	 primary key (instructor_ID, course_ID, sec_ID, semester, year),
+	 foreign key (course_ID,sec_ID, semester, year) references section (course_ID,sec_ID, semester, year),
+	 foreign key (instructor_ID) references instructor (instructor_ID)
+	);
+
+
+create table takes
+	(student_ID		varchar(5), 
+	 course_ID		varchar(8),
+	 sec_ID			varchar(8), 
+	 semester		varchar(6),
+	 year			numeric(4,0),
+	 grade		    numeric(3,1),									
+	 section_fee   numeric(7,2) check (section_fee>0),		
+	 primary key (student_ID, course_ID, sec_ID, semester, year),
+	 foreign key (course_ID,sec_ID, semester, year) references section (course_ID,sec_ID, semester, year),
+	 foreign key (student_ID) references student (student_ID)
+	);
+
+
+insert into classroom values('Lambeau', 780, 13);
+insert into classroom values('Lamberton', 958, 52);
+insert into classroom values('Power', 771, 10);
+insert into classroom values('Grace', 218, 18);
+
+insert into department values('Cybernetics', 'Wrigley', 464845.49);
+insert into department values('Biology', 'Drown', 970859.81);
+insert into department values('Psychology', 'Saucon', 164508);
+insert into department values('Astronomy', 'Linderman', 275088.57);
+insert into department values('Pol. Sci.', 'Rathbone', 849794.37);
+insert into department values('Accounting', 'Grace', 280163.84);
+
+insert into course values('508', 'Death and Taxes', 'Astronomy', 4,'Compulsory');
+insert into course values('146', 'Automobile Mechanics', 'Accounting', 3,'Compulsory');
+insert into course values('617', 'Design and Analysis of Algorithms', 'Cybernetics', 3,'Elective');
+insert into course values('801', 'Introduction to Burglary', 'Astronomy', 3,'Elective');
+insert into course values('281', 'Banking and Finance', 'Cybernetics', 3,'Compulsory');
+insert into course values('406', 'C  Programming', 'Pol. Sci.', 3,'Elective');
+insert into course values('415', 'Environmental Law', 'Cybernetics', 4,'Compulsory');
+insert into course values('133', 'Operating Systems', 'Biology', 4,'Compulsory');
+insert into course values('120', 'Existentialism', 'Accounting', 3,'Compulsory');
+insert into course values('147', 'Plasma Physics', 'Biology', 4,'Elective');
+
+insert into instructor values('34972', 'Ishihara', 'Cybernetics', 99878.34,240);
+insert into instructor values('31815', 'Steeh', 'Cybernetics', 88923.58,240);
+insert into instructor values('43644', 'Bhat', 'Psychology', 94412.82,240);
+insert into instructor values('75090', 'Shoji', 'Biology', 52812.79,180);
+insert into instructor values('97114', 'Umehara', 'Cybernetics', 75423.47,120);
+insert into instructor values('62684', 'Leister', 'Accounting', 79124.75,240);
+insert into instructor values('38073', 'Kok', 'Astronomy', 118647.45,240);
+insert into instructor values('44654', 'Loher', 'Psychology', 59047.5,120);
+insert into instructor values('2586', 'Odell', 'Pol. Sci.', 68849.53,240);
+insert into instructor values('52215', 'Morris', 'Pol. Sci.', 74208.91,140);
+
+insert into section values('281', '1', 'Fall', 2003, 'Lambeau', '780',8);
+insert into section values('406', '1', 'Fall', 2006, 'Power', '771',8);
+insert into section values('281', '2', 'Spring', 2001, 'Power', '771',6);
+insert into section values('146', '1', 'Fall', 2010, 'Power', '771',8);
+insert into section values('281', '3', 'Fall', 2008, 'Power', '771',6);
+insert into section values('281', '4', 'Spring', 2003, 'Lamberton', '958',6);
+insert into section values('120', '1', 'Spring', 2001, 'Power', '771',6);
+insert into section values('147', '1', 'Spring', 2007, 'Grace', '218',8);
+insert into section values('406', '2', 'Spring', 2005, 'Grace', '218',8);
+insert into section values('508', '1', 'Fall', 2003, 'Grace', '218',6);
+insert into section values('120', '2', 'Fall', 2003, 'Lambeau', '780',6);
+insert into section values('133', '1', 'Fall', 2007, 'Power', '771',8);
+insert into section values('801', '1', 'Fall', 2009, 'Grace', '218',8);
+insert into section values('801', '2', 'Fall', 2004, 'Power', '771',8);
+insert into section values('508', '2', 'Fall', 2010, 'Grace', '218',6);
+insert into section values('147', '2', 'Spring', 2005, 'Power', '771',8);
+insert into section values('147', '3', 'Spring', 2010, 'Power', '771',8);
+insert into section values('508', '3', 'Spring', 2003, 'Lamberton', '958',6);
+insert into section values('120', '3', 'Spring', 2005, 'Grace', '218',6);
+insert into section values('133', '2', 'Fall', 2009, 'Grace', '218',8);
+
+insert into teaches values('75090', '147', '2', 'Spring', 2005,30);
+insert into teaches values('52215', '406', '1', 'Fall', 2006,40);
+insert into teaches values('62684', '120', '1', 'Spring', 2001,60);
+insert into teaches values('62684', '146', '1', 'Fall', 2010,60);
+insert into teaches values('38073', '508', '3', 'Spring', 2003,30);
+insert into teaches values('62684', '120', '2', 'Fall', 2003,60);
+insert into teaches values('31815', '281', '4', 'Spring', 2003,60);
+insert into teaches values('97114', '281', '2', 'Spring', 2001,30);
+insert into teaches values('38073', '801', '2', 'Fall', 2004,30);
+insert into teaches values('38073', '801', '1', 'Fall', 2009,60);
+insert into teaches values('97114', '281', '1', 'Fall', 2003,30);
+insert into teaches values('31815', '281', '3', 'Fall', 2008,30);
+insert into teaches values('38073', '508', '1', 'Fall', 2003,30);
+insert into teaches values('62684', '120', '3', 'Spring', 2005,60);
+insert into teaches values('75090', '133', '1', 'Fall', 2007,30);
+insert into teaches values('75090', '133', '2', 'Fall', 2009,30);
+insert into teaches values('75090', '147', '1', 'Spring', 2007,30);
+insert into teaches values('75090', '147', '3', 'Spring', 2010,30);
+insert into teaches values('38073', '508', '2', 'Fall', 2010,30);
+insert into teaches values('52215', '406', '2', 'Spring', 2005,100);
+
+insert into student values('13540','Rubio','Accounting',92,'44654');
+insert into student values('53668','Drews','Astronomy',6,'75090');
+insert into student values('48196','Zacharias','Accounting',103,'44654');
+insert into student values('69535','Rzecz','Cybernetics',78,'43644');
+insert into student values('14545','Christodoulakis','Pol. Sci.',52,'97114');
+insert into student values('58304','Fukui','Astronomy',115,'2586');
+insert into student values('80382','Shabuno','Biology',19,'31815');
+insert into student values('66575','Sawah','Psychology',22,'75090');
+insert into student values('82358','Pavlovico','Astronomy',125,'34972');
+insert into student values('67015','Ailamaki','Astronomy',119,'38073');
+insert into student values('78742','Narayanan','Psychology',52,'34972');
+insert into student values('28005','Humphrey','Pol. Sci.',36,'44654');
+insert into student values('86861','Daues','Astronomy',107,'52215');
+insert into student values('94707','Romeo','Biology',81,'31815');
+insert into student values('40610','Unger','Cybernetics',42,'44654');
+insert into student values('9345','Gregory','Accounting',92,'2586');
+insert into student values('95461','Otsuki','Psychology',40,'43644');
+insert into student values('30211','Garg','Cybernetics',65,'97114');
+insert into student values('24680','Kanata','Biology',114,'31815');
+insert into student values('95062','Liepelt','Psychology',76,'31815');
+
+Insert into takes values ('94707','281','4','Spring',2003,0,360);
+Insert into takes values ('30211','120','2','Fall',2003,9,360);
+Insert into takes values ('78742','801','1','Fall',2009,4,360);
+Insert into takes values ('69535','146','1','Fall',2010,4,360);
+Insert into takes values ('13540','120','3','Spring',2005,6,360);
+Insert into takes values ('66575','508','2','Fall',2010,7,480);
+Insert into takes values ('95461','508','3','Spring',2003,9,480);
+Insert into takes values ('69535','281','4','Spring',2003,9,360);
+Insert into takes values ('24680','508','1','Fall',2003,4,480);
+Insert into takes values ('30211','281','1','Fall',2003,8,360);
+Insert into takes values ('95461','281','3','Fall',2008,10,360);
+Insert into takes values ('9345','281','1','Fall',2003,3,360);
+Insert into takes values ('40610','508','2','Fall',2010,2,480);
+Insert into takes values ('9345','508','3','Spring',2003,2,480);
+Insert into takes values ('14545','508','1','Fall',2003,2,480);
+Insert into takes values ('95461','281','1','Fall',2003,6,360);
+Insert into takes values ('78742','120','1','Spring',2001,6,360);
+Insert into takes values ('13540','508','3','Spring',2003,1,480);
+Insert into takes values ('86861','146','1','Fall',2010,2,360);
+Insert into takes values ('14545','281','1','Fall',2003,1,360);
+Insert into takes values ('13540','281','3','Fall',2008,2,360);
+Insert into takes values ('69535','508','1','Fall',2003,5,480);
+Insert into takes values ('13540','801','1','Fall',2009,6,360);
+Insert into takes values ('40610','120','2','Fall',2003,10,360);
+Insert into takes values ('82358','801','1','Fall',2009,5,360);
+Insert into takes values ('58304','120','2','Fall',2003,7,360);
+Insert into takes values ('30211','281','4','Spring',2003,2,360);
+Insert into takes values ('24680','801','2','Fall',2004,7,360);
+Insert into takes values ('53668','281','1','Fall',2003,8,360);
+Insert into takes values ('94707','281','1','Fall',2003,5,360);
+Insert into takes values ('48196','801','2','Fall',2004,3,360);
+Insert into takes values ('82358','120','2','Fall',2003,4,360);
+Insert into takes values ('95062','281','2','Spring',2001,2,360);
+Insert into takes values ('66575','146','1','Fall',2010,2,360);
+Insert into takes values ('14545','281','3','Fall',2008,5,360);
+Insert into takes values ('53668','120','2','Fall',2003,9,360);
+Insert into takes values ('78742','281','1','Fall',2003,2,360);
+Insert into takes values ('30211','281','2','Spring',2001,4,360);
+Insert into takes values ('94707','508','1','Fall',2003,5,480);
+Insert into takes values ('53668','281','3','Fall',2008,4,360);
+Insert into takes values ('86861','801','2','Fall',2004,7,360);
+Insert into takes values ('24680','120','3','Spring',2005,8,360);
+Insert into takes values ('9345','508','2','Fall',2010,4,480);
+Insert into takes values ('58304','508','2','Fall',2010,9,480);
+Insert into takes values ('94707','801','1','Fall',2009,9,360);
+Insert into takes values ('48196','281','4','Spring',2003,10,360);
+Insert into takes values ('40610','508','1','Fall',2003,7,480);
+Insert into takes values ('53668','281','2','Spring',2001,9,360);
+Insert into takes values ('30211','508','3','Spring',2003,10,480);
+Insert into takes values ('30211','801','1','Fall',2009,1,360);
+Insert into takes values ('80382','120','1','Spring',2001,2,360);
+
+
+
+insert into is_prerequisite values('120', '133');
+insert into is_prerequisite values('801', '120');
+insert into is_prerequisite values('508', '146');
+insert into is_prerequisite values('133', '406');
+insert into is_prerequisite values('415', '801');
+insert into is_prerequisite values('133', '415');
+insert into is_prerequisite values('508', '801');
+insert into is_prerequisite values('147', '508');
+insert into is_prerequisite values('406', '146');
+insert into is_prerequisite values('147', '147');
+commit;
